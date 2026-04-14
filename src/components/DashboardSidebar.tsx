@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function DashboardSidebar({ userRole }: Props) {
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
   function isActive(path: string) {
@@ -17,83 +19,120 @@ export default function DashboardSidebar({ userRole }: Props) {
   }
 
   return (
-    <div className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full shrink-0">
-      {/* Logo */}
-      <div className="px-6 py-5 border-b border-slate-800">
-        <Link href="/dashboard/chat" className="flex items-center gap-2">
-          <span className="text-white font-semibold text-lg">
+    <>
+      {/* Toggle button — always visible top-left */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed top-3 left-3 z-40 w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+        aria-label="Open menu"
+      >
+        <MenuIcon />
+      </button>
+
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Slide-out panel */}
+      <div
+        className={`fixed top-0 left-0 h-full w-72 z-50 bg-slate-900 border-r border-slate-800 flex flex-col transform transition-transform duration-200 ease-in-out ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-4 border-b border-slate-800">
+          <Link
+            href="/dashboard/chat"
+            onClick={() => setOpen(false)}
+            className="text-white font-semibold text-lg"
+          >
             <span className="text-brand-400">Lex</span>Safe AI
-          </span>
-        </Link>
-        <p className="text-slate-500 text-xs mt-0.5">Legal Research Assistant</p>
-      </div>
+          </Link>
+          <button
+            onClick={() => setOpen(false)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            <CloseIcon />
+          </button>
+        </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <NavItem
-          href="/dashboard/chat"
-          label="New Session"
-          icon={<ChatIcon />}
-          active={isActive("/dashboard/chat")}
-        />
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <NavItem
+            href="/dashboard/chat"
+            label="New Session"
+            icon={<ChatIcon />}
+            active={isActive("/dashboard/chat")}
+            onClick={() => setOpen(false)}
+          />
 
-        {(userRole === "admin") && (
-          <>
-            <div className="pt-4 pb-1 px-3">
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Firm Admin
-              </p>
-            </div>
-            <NavItem
-              href="/dashboard/firm"
-              label="Firm Settings"
-              icon={<FirmIcon />}
-              active={isActive("/dashboard/firm")}
-            />
-            <NavItem
-              href="/dashboard/firm/users"
-              label="Manage Users"
-              icon={<UsersIcon />}
-              active={isActive("/dashboard/firm/users")}
-            />
-          </>
-        )}
+          {userRole === "admin" && (
+            <>
+              <div className="pt-5 pb-1 px-3">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Firm Admin
+                </p>
+              </div>
+              <NavItem
+                href="/dashboard/firm"
+                label="Firm Settings"
+                icon={<FirmIcon />}
+                active={isActive("/dashboard/firm")}
+                onClick={() => setOpen(false)}
+              />
+              <NavItem
+                href="/dashboard/firm/users"
+                label="Manage Users"
+                icon={<UsersIcon />}
+                active={isActive("/dashboard/firm/users")}
+                onClick={() => setOpen(false)}
+              />
+            </>
+          )}
 
-        <div className="pt-4 pb-1 px-3">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-            Account
+          <div className="pt-5 pb-1 px-3">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+              Account
+            </p>
+          </div>
+          <NavItem
+            href="/dashboard/settings"
+            label="Settings"
+            icon={<SettingsIcon />}
+            active={isActive("/dashboard/settings")}
+            onClick={() => setOpen(false)}
+          />
+        </nav>
+
+        {/* Privacy notice */}
+        <div className="px-4 py-3 mx-3 mb-3 bg-slate-800/60 rounded-lg border border-slate-700/50">
+          <div className="flex items-center gap-2 mb-1">
+            <LockIcon />
+            <span className="text-xs font-medium text-slate-300">Privacy Protected</span>
+          </div>
+          <p className="text-xs text-slate-500 leading-snug">
+            Sessions are never stored. Closing a window ends the session permanently.
           </p>
+          <Link
+            href="/privacy"
+            onClick={() => setOpen(false)}
+            className="text-xs text-brand-400 hover:text-brand-300 mt-1 inline-block transition-colors"
+          >
+            How it works →
+          </Link>
         </div>
-        <NavItem
-          href="/dashboard/settings"
-          label="Settings"
-          icon={<SettingsIcon />}
-          active={isActive("/dashboard/settings")}
-        />
-      </nav>
 
-      {/* Privacy badge */}
-      <div className="px-4 py-3 mx-3 mb-3 bg-slate-800/60 rounded-lg border border-slate-700/50">
-        <div className="flex items-center gap-2 mb-1">
-          <LockIcon />
-          <span className="text-xs font-medium text-slate-300">Privacy Protected</span>
-        </div>
-        <p className="text-xs text-slate-500 leading-snug">
-          Sessions are never stored. Closing a window ends the session permanently.
-        </p>
-        <Link href="/privacy" className="text-xs text-brand-400 hover:text-brand-300 mt-1 inline-block transition-colors">
-          How it works →
-        </Link>
-      </div>
-
-      {/* User */}
-      <div className="px-4 py-4 border-t border-slate-800 flex items-center gap-3">
-        <UserButton afterSignOutUrl="/" />
-        <div className="text-xs text-slate-400 min-w-0">
-          <p className="capitalize text-slate-300">{userRole}</p>
+        {/* User */}
+        <div className="px-4 py-4 border-t border-slate-800 flex items-center gap-3">
+          <UserButton afterSignOutUrl="/" />
+          <span className="text-sm text-slate-300 capitalize">{userRole}</span>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -102,15 +141,18 @@ function NavItem({
   label,
   icon,
   active,
+  onClick,
 }: {
   href: string;
   label: string;
   icon: React.ReactNode;
   active: boolean;
+  onClick: () => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
         active
           ? "bg-brand-600/20 text-brand-300 border border-brand-600/30"
@@ -120,6 +162,22 @@ function NavItem({
       <span className="shrink-0">{icon}</span>
       {label}
     </Link>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
   );
 }
 
